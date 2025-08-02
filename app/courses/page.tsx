@@ -1,462 +1,308 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { GlassCard } from "@/components/ui/glass-card"
-import { NeonButton } from "@/components/ui/neon-button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Star, Users, Clock, Play, BookOpen, Award, TrendingUp, Heart, Share2 } from "lucide-react"
-import Link from "next/link"
+import type React from "react"
 
-// Mock course data
-const mockCourses = [
-  {
-    id: "1",
-    title: "Advanced React Patterns & Performance",
-    description:
-      "Master advanced React concepts including hooks, context, performance optimization, and modern patterns.",
-    instructor: {
-      name: "Sarah Chen",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    price: 89.99,
-    originalPrice: 129.99,
-    rating: 4.9,
-    students: 12847,
-    duration: "8h 30m",
-    lessons: 42,
-    level: "Advanced",
-    category: "Web Development",
-    tags: ["React", "JavaScript", "Performance"],
-    bestseller: true,
-    updated: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "AI & Machine Learning Fundamentals",
-    description:
-      "Complete introduction to AI and ML concepts with hands-on Python projects and real-world applications.",
-    instructor: {
-      name: "Dr. Marcus Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    price: 79.99,
-    originalPrice: null,
-    rating: 4.8,
-    students: 8934,
-    duration: "12h 15m",
-    lessons: 56,
-    level: "Beginner",
-    category: "Data Science",
-    tags: ["Python", "AI", "Machine Learning"],
-    bestseller: false,
-    updated: "2024-01-20",
-  },
-  {
-    id: "3",
-    title: "Mobile App Design Masterclass",
-    description: "Learn to design beautiful, user-friendly mobile apps using Figma and modern design principles.",
-    instructor: {
-      name: "Emma Rodriguez",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    price: 69.99,
-    originalPrice: 99.99,
-    rating: 4.7,
-    students: 6521,
-    duration: "6h 45m",
-    lessons: 38,
-    level: "Intermediate",
-    category: "Design",
-    tags: ["UI/UX", "Figma", "Mobile"],
-    bestseller: false,
-    updated: "2024-01-10",
-  },
-  {
-    id: "4",
-    title: "Blockchain & Web3 Development",
-    description: "Build decentralized applications with Solidity, Ethereum, and modern Web3 technologies.",
-    instructor: {
-      name: "Alex Kumar",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    price: 149.99,
-    originalPrice: 199.99,
-    rating: 4.6,
-    students: 4287,
-    duration: "15h 20m",
-    lessons: 67,
-    level: "Advanced",
-    category: "Blockchain",
-    tags: ["Solidity", "Ethereum", "Web3"],
-    bestseller: true,
-    updated: "2024-01-25",
-  },
-  {
-    id: "5",
-    title: "Digital Marketing Strategy 2024",
-    description: "Complete guide to modern digital marketing including SEO, social media, and conversion optimization.",
-    instructor: {
-      name: "Lisa Thompson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    price: 59.99,
-    originalPrice: null,
-    rating: 4.5,
-    students: 15632,
-    duration: "9h 10m",
-    lessons: 45,
-    level: "Beginner",
-    category: "Marketing",
-    tags: ["SEO", "Social Media", "Analytics"],
-    bestseller: false,
-    updated: "2024-01-18",
-  },
-  {
-    id: "6",
-    title: "3D Animation with Blender",
-    description: "Create stunning 3D animations and visual effects using Blender from beginner to professional level.",
-    instructor: {
-      name: "David Park",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    price: 94.99,
-    originalPrice: 134.99,
-    rating: 4.8,
-    students: 7891,
-    duration: "18h 30m",
-    lessons: 78,
-    level: "Intermediate",
-    category: "3D & Animation",
-    tags: ["Blender", "3D", "Animation"],
-    bestseller: true,
-    updated: "2024-01-12",
-  },
-]
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Navbar } from "@/components/navigation/navbar"
+import { MobileBottomNav } from "@/components/navigation/mobile-bottom-nav"
+import { mockCourses, mockCategories } from "@/lib/mockData"
+import { Search, Star, Users, Clock, BookOpen, Play, ChevronRight, Grid3X3, List } from "lucide-react"
 
 export default function CoursesPage() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedLevel, setSelectedLevel] = useState("all")
   const [sortBy, setSortBy] = useState("popular")
-  const [filteredCourses, setFilteredCourses] = useState(mockCourses)
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
-    }
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [])
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Filter courses based on search query
+    console.log("Searching for:", searchQuery)
+  }
 
-  useEffect(() => {
-    const filtered = mockCourses.filter((course) => {
-      const matchesSearch =
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredCourses = mockCourses.filter((course) => {
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === "all" || course.category === selectedCategory
+    const matchesLevel = selectedLevel === "all" || course.level.toLowerCase() === selectedLevel
 
-      const matchesCategory = selectedCategory === "all" || course.category === selectedCategory
-      const matchesLevel = selectedLevel === "all" || course.level === selectedLevel
+    return matchesSearch && matchesCategory && matchesLevel
+  })
 
-      return matchesSearch && matchesCategory && matchesLevel
-    })
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price)
+  }
 
-    // Sort courses
-    switch (sortBy) {
-      case "popular":
-        filtered.sort((a, b) => b.students - a.students)
-        break
-      case "rating":
-        filtered.sort((a, b) => b.rating - a.rating)
-        break
-      case "price-low":
-        filtered.sort((a, b) => a.price - b.price)
-        break
-      case "price-high":
-        filtered.sort((a, b) => b.price - a.price)
-        break
-      case "newest":
-        filtered.sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime())
-        break
-    }
-
-    setFilteredCourses(filtered)
-  }, [searchQuery, selectedCategory, selectedLevel, sortBy])
-
-  const categories = ["Web Development", "Data Science", "Design", "Blockchain", "Marketing", "3D & Animation"]
-  const levels = ["Beginner", "Intermediate", "Advanced"]
+  const formatDuration = (hours: number, minutes: number) => {
+    if (hours === 0) return `${minutes}m`
+    if (minutes === 0) return `${hours}h`
+    return `${hours}h ${minutes}m`
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Dynamic background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-black to-blue-900/10" />
-        <div
-          className="absolute w-[600px] h-[600px] bg-gradient-to-r from-purple-500/8 via-pink-500/8 to-blue-500/8 rounded-full blur-3xl"
-          style={{
-            left: mousePosition.x - 300,
-            top: mousePosition.y - 300,
-            transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10">
+        <Navbar />
+
         {/* Header */}
-        <div className="container mx-auto px-6 py-12">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-xl border border-purple-500/20 rounded-full px-6 py-3 mb-6">
-              <BookOpen className="w-4 h-4 text-purple-400" />
-              <span className="text-sm font-medium text-purple-300">Learn from the Best</span>
+        <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-4">
+                Discover Amazing{" "}
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Courses
+                </span>
+              </h1>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Learn from industry experts and advance your career with our comprehensive course library
+              </p>
             </div>
 
-            <h1 className="text-5xl md:text-6xl font-black mb-6">
-              <span className="bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-                Discover Amazing
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                Courses
-              </span>
-            </h1>
-
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
-              Master new skills with expert-led courses designed for the modern learner. From beginner to advanced
-              levels.
-            </p>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
-              {[
-                { icon: BookOpen, value: "500+", label: "Courses" },
-                { icon: Users, value: "50K+", label: "Students" },
-                { icon: Award, value: "95%", label: "Success Rate" },
-                { icon: TrendingUp, value: "4.8", label: "Avg Rating" },
-              ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-white/5 to-white/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                    <stat.icon className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <div className="text-lg font-bold text-white">{stat.value}</div>
-                  <div className="text-xs text-gray-400">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Filters */}
-          <GlassCard className="mb-8">
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Search */}
-                <div className="lg:col-span-2 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            {/* Search and Filters */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
+              <form onSubmit={handleSearch} className="mb-6">
+                <div className="relative max-w-2xl mx-auto">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
-                    placeholder="Search courses..."
+                    type="text"
+                    placeholder="Search courses, instructors, topics..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 bg-white/5 border-white/20 text-white placeholder-gray-400"
+                    className="pl-12 pr-4 py-4 text-lg bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   />
                 </div>
+              </form>
 
-                {/* Category Filter */}
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {mockCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                {/* Level Filter */}
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                    <SelectValue placeholder="Level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    {levels.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                    <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                {/* Sort */}
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="popular">Most Popular</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="popular">Most Popular</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="rating">Highest Rated</SelectItem>
+                      <SelectItem value="price-low">Price: Low to High</SelectItem>
+                      <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </GlassCard>
 
-          {/* Results */}
-          <div className="mb-6 flex items-center justify-between">
-            <p className="text-gray-400">
-              Showing {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""}
-            </p>
-          </div>
+            {/* Results Count */}
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-gray-400">
+                Showing {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""}
+              </p>
+            </div>
 
-          {/* Course Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCourses.map((course) => (
-              <Link key={course.id} href={`/courses/${course.id}`}>
-                <GlassCard className="group hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="relative">
-                    {/* Thumbnail */}
-                    <div className="relative overflow-hidden rounded-t-xl">
-                      <img
-                        src={course.thumbnail || "/placeholder.svg"}
-                        alt={course.title}
-                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                      {/* Play button overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center">
-                          <Play className="w-8 h-8 text-white ml-1" />
-                        </div>
-                      </div>
-
-                      {/* Badges */}
-                      <div className="absolute top-4 left-4 flex gap-2">
-                        {course.bestseller && (
-                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
-                            Bestseller
-                          </Badge>
-                        )}
-                        {course.originalPrice && (
-                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
-                            {Math.round(((course.originalPrice - course.price) / course.originalPrice) * 100)}% OFF
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <button className="w-8 h-8 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-                          <Heart className="w-4 h-4 text-white" />
-                        </button>
-                        <button className="w-8 h-8 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-                          <Share2 className="w-4 h-4 text-white" />
-                        </button>
-                      </div>
+            {/* Courses Grid/List */}
+            <div
+              className={`grid gap-6 ${
+                viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+              }`}
+            >
+              {filteredCourses.map((course) => (
+                <Card
+                  key={course.id}
+                  className={`bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer group backdrop-blur-sm overflow-hidden ${
+                    viewMode === "list" ? "flex flex-row" : ""
+                  }`}
+                  onClick={() => router.push(`/courses/${course.id}`)}
+                >
+                  <div className={`relative ${viewMode === "list" ? "w-80 flex-shrink-0" : ""}`}>
+                    <img
+                      src={course.thumbnail_url || "/placeholder.svg"}
+                      alt={course.title}
+                      className={`object-cover group-hover:scale-105 transition-transform duration-300 ${
+                        viewMode === "list" ? "w-full h-full" : "w-full h-48"
+                      }`}
+                    />
+                    <Badge className="absolute top-3 left-3 bg-purple-600 text-white">{course.category}</Badge>
+                    <Badge variant="secondary" className="absolute top-3 right-3 bg-black/50 text-white">
+                      {course.level}
+                    </Badge>
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Play className="w-12 h-12 text-white" />
                     </div>
+                  </div>
 
-                    {/* Content */}
-                    <div className="p-6">
-                      {/* Category & Level */}
-                      <div className="flex items-center justify-between mb-3">
-                        <Badge variant="outline" className="text-purple-400 border-purple-400/30">
-                          {course.category}
-                        </Badge>
-                        <Badge variant="outline" className="text-cyan-400 border-cyan-400/30">
-                          {course.level}
-                        </Badge>
+                  <div className="flex-1">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={course.instructor.avatar_url || "/placeholder.svg"} />
+                          <AvatarFallback>
+                            {course.instructor.full_name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-gray-400 text-sm">{course.instructor.full_name}</span>
                       </div>
 
-                      {/* Title */}
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                      <h3 className="text-white font-semibold text-lg mb-3 group-hover:text-purple-400 transition-colors line-clamp-2">
                         {course.title}
                       </h3>
 
-                      {/* Description */}
                       <p className="text-gray-400 text-sm mb-4 line-clamp-2">{course.description}</p>
 
-                      {/* Instructor */}
-                      <div className="flex items-center mb-4">
-                        <img
-                          src={course.instructor.avatar || "/placeholder.svg"}
-                          alt={course.instructor.name}
-                          className="w-8 h-8 rounded-full mr-3"
-                        />
-                        <div>
-                          <p className="text-white text-sm font-medium">{course.instructor.name}</p>
-                          {course.instructor.verified && (
-                            <div className="flex items-center">
-                              <Award className="w-3 h-3 text-blue-400 mr-1" />
-                              <span className="text-xs text-blue-400">Verified</span>
-                            </div>
-                          )}
+                      <div className="flex items-center space-x-4 mb-4 text-sm text-gray-400">
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span>{course.rating}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-4 h-4" />
+                          <span>{course.student_count.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatDuration(course.duration_hours, course.duration_minutes)}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <BookOpen className="w-4 h-4" />
+                          <span>{course.lesson_count} lessons</span>
                         </div>
                       </div>
 
-                      {/* Stats */}
-                      <div className="flex items-center justify-between mb-4 text-sm text-gray-400">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center">
-                            <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                            <span>{course.rating}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Users className="w-4 h-4 mr-1" />
-                            <span>{course.students.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1" />
-                            <span>{course.duration}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Price */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <span className="text-2xl font-bold text-white">${course.price}</span>
-                          {course.originalPrice && (
-                            <span className="text-lg text-gray-400 line-through">${course.originalPrice}</span>
+                          <span className="text-white font-bold text-xl">{formatPrice(course.price)}</span>
+                          {course.original_price && (
+                            <span className="text-gray-400 line-through text-sm">
+                              {formatPrice(course.original_price)}
+                            </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-400">{course.lessons} lessons</div>
+                        {course.original_price && (
+                          <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                            {Math.round(((course.original_price - course.price) / course.original_price) * 100)}% OFF
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </GlassCard>
-              </Link>
-            ))}
-          </div>
 
-          {/* Load More */}
-          {filteredCourses.length > 0 && (
-            <div className="text-center mt-12">
-              <NeonButton variant="secondary" size="lg">
-                Load More Courses
-              </NeonButton>
+                      {viewMode === "list" && (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          <div className="space-y-2">
+                            <h4 className="text-white font-medium text-sm">What you'll learn:</h4>
+                            <ul className="space-y-1">
+                              {course.what_you_learn.slice(0, 3).map((item, index) => (
+                                <li key={index} className="text-gray-400 text-sm flex items-start">
+                                  <span className="text-green-400 mr-2">✓</span>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </div>
+                </Card>
+              ))}
             </div>
-          )}
+
+            {/* Empty State */}
+            {filteredCourses.length === 0 && (
+              <div className="text-center py-16">
+                <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">No courses found</h3>
+                <p className="text-gray-400 mb-6">Try adjusting your search criteria or browse all courses</p>
+                <Button
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedCategory("all")
+                    setSelectedLevel("all")
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+
+            {/* Load More */}
+            {filteredCourses.length > 0 && (
+              <div className="text-center mt-12">
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 bg-transparent">
+                  Load More Courses
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
+
+        <MobileBottomNav />
       </div>
     </div>
   )

@@ -1,56 +1,79 @@
 import { supabase, isSupabaseConfigured } from "@/lib/mockData"
 
-export async function signOut() {
-  if (isSupabaseConfigured) {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+export const signIn = async (email: string, password: string) => {
+  if (!isSupabaseConfigured() || !supabase) {
+    // Mock authentication for demo
+    return {
+      user: {
+        id: "demo-user-id",
+        email,
+        user_metadata: {
+          full_name: "Demo User",
+          username: "demouser",
+        },
+      },
+    }
   }
-  // For demo mode, just resolve
-  return Promise.resolve()
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) throw error
+  return data
 }
 
-export async function signIn(email: string, password: string) {
-  if (isSupabaseConfigured) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) throw error
-    return data
+export const signUp = async (email: string, password: string, username: string, fullName: string) => {
+  if (!isSupabaseConfigured() || !supabase) {
+    // Mock authentication for demo
+    return {
+      user: {
+        id: "demo-user-id",
+        email,
+        user_metadata: {
+          full_name: fullName,
+          username,
+        },
+      },
+    }
   }
-  // Mock sign in for demo
-  return {
-    user: {
-      id: "demo-user",
-      email,
-      user_metadata: {
-        full_name: "Demo User",
-        username: "demouser",
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username,
+        full_name: fullName,
       },
     },
-    session: null,
+  })
+
+  if (error) throw error
+
+  // Create user profile
+  if (data.user) {
+    const { error: profileError } = await supabase.from("users").insert([
+      {
+        id: data.user.id,
+        username,
+        full_name: fullName,
+      },
+    ])
+
+    if (profileError) throw profileError
   }
+
+  return data
 }
 
-export async function signUp(email: string, password: string, metadata: any) {
-  if (isSupabaseConfigured) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-      },
-    })
-    if (error) throw error
-    return data
+export const signOut = async () => {
+  if (!isSupabaseConfigured() || !supabase) {
+    // Mock sign out
+    return
   }
-  // Mock sign up for demo
-  return {
-    user: {
-      id: "demo-user",
-      email,
-      user_metadata: metadata,
-    },
-    session: null,
-  }
+
+  const { error } = await supabase.auth.signOut()
+  if (error) throw error
 }
