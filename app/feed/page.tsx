@@ -18,6 +18,8 @@ import {
   PlusSquare,
   Menu, // New icon for the "More" option
 } from "lucide-react"
+import { MessageOverlay } from "@/components/messages/message-overlay"
+import { ShareOverlay } from "@/components/share/share-overlay"
 
 // Sidebar navigation items with functional links
 const navItems = [
@@ -36,6 +38,10 @@ export default function FeedPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [isMessageOpen, setIsMessageOpen] = useState(false)
+  const [activeMessageReelId, setActiveMessageReelId] = useState<string | null>(null)
+  const [isShareOpen, setIsShareOpen] = useState(false)
+  const [activeShareReelId, setActiveShareReelId] = useState<string | null>(null)
 
   const minSwipeDistance = 50
 
@@ -70,6 +76,16 @@ export default function FeedPage() {
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [currentIndex])
+
+  const handleMessage = (reelId: string) => {
+    setActiveMessageReelId(reelId)
+    setIsMessageOpen(true)
+  }
+
+  const handleShare = (reelId: string) => {
+    setActiveShareReelId(reelId)
+    setIsShareOpen(true)
+  }
 
   const Sidebar = () => (
     <aside className="hidden md:flex flex-col w-64 border-r border-neutral-800 p-4">
@@ -144,11 +160,13 @@ export default function FeedPage() {
               style={{ transform: `translateY(-${currentIndex * 100}%)` }}
             >
               {mockReels.map((reel, index) => (
-                <div key={reel.id} className="h-full flex-shrink-0">
+                <div key={reel.id} className="h-full flex-shrink-0" >
                   <VerticalVideoPlayer
                     reel={reel}
                     isActive={index === currentIndex}
                     onLike={(reelId) => console.log("Liked reel:", reelId)}
+                    onMessage={handleMessage}
+                    onShare={handleShare}  // Add this prop
                   />
                 </div>
               ))}
@@ -180,6 +198,20 @@ export default function FeedPage() {
           )}
         </div>
       </main>
+
+      {/* Add MessageOverlay */}
+      <MessageOverlay
+        isOpen={isMessageOpen}
+        onClose={() => setIsMessageOpen(false)}
+        reelId={activeMessageReelId || ""}
+      />
+
+      {/* Add ShareOverlay */}
+      <ShareOverlay
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        reelId={activeShareReelId || ""}
+      />
     </div>
   )
 }

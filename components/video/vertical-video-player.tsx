@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Heart, MessageCircle, Share, MoreHorizontal, Play, Volume2, VolumeX } from "lucide-react"
+import { Heart, MessageCircle, Share, MoreHorizontal, Play, Volume2, VolumeX, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -22,9 +22,11 @@ interface VideoPlayerProps {
   }
   isActive: boolean
   onLike?: (reelId: string) => void
+  onMessage?: (reelId: string) => void
+  onShare?: (reelId: string) => void // Add this prop
 }
 
-export function VerticalVideoPlayer({ reel, isActive, onLike }: VideoPlayerProps) {
+export function VerticalVideoPlayer({ reel, isActive, onLike, onMessage, onShare }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
@@ -227,6 +229,7 @@ export function VerticalVideoPlayer({ reel, isActive, onLike }: VideoPlayerProps
               variant="ghost"
               size="icon"
               className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white"
+              onClick={() => onMessage?.(reel.id)}
             >
               <MessageCircle className="h-6 w-6" />
             </Button>
@@ -239,8 +242,9 @@ export function VerticalVideoPlayer({ reel, isActive, onLike }: VideoPlayerProps
               variant="ghost"
               size="icon"
               className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white"
+              onClick={() => onShare?.(reel.id)}
             >
-              <Share className="h-6 w-6" />
+              <Share2 className="h-6 w-6" />
             </Button>
             <span className="text-white text-xs font-medium">Share</span>
           </div>

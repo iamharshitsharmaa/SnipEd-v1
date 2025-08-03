@@ -4,7 +4,7 @@ export const mockReels = [
     title: "React Hooks Explained in 60 Seconds",
     description:
       "Learn the basics of React Hooks with this quick tutorial. Perfect for beginners who want to understand useState and useEffect! #React #WebDev #Programming",
-    video_url: "/placeholder.svg?height=800&width=450&text=React+Hooks+Video",
+    video_url: "https://www.pexels.com/video/two-men-sitting-by-the-river-bank-while-talking-to-each-other-4830364/",
     creator: {
       username: "reactmaster",
       full_name: "Sarah Johnson",
@@ -19,7 +19,7 @@ export const mockReels = [
     title: "CSS Grid Layout Tricks",
     description:
       "Master CSS Grid with these amazing layout tricks! Create responsive designs that look great on any device. #CSS #WebDesign #Frontend",
-    video_url: "/placeholder.svg?height=800&width=450&text=CSS+Grid+Video",
+    video_url: "https://www.pexels.com/video/a-reel-to-reel-tape-recorder-spinning-8382685/",
     creator: {
       username: "cssqueen",
       full_name: "Emma Davis",
@@ -34,7 +34,7 @@ export const mockReels = [
     title: "JavaScript ES6 Features You Must Know",
     description:
       "Discover the most important ES6 features that every JavaScript developer should master. Arrow functions, destructuring, and more! #JavaScript #ES6 #WebDev",
-    video_url: "/placeholder.svg?height=800&width=450&text=JavaScript+ES6+Video",
+    video_url: "https://www.pexels.com/video/people-camping-on-frozen-lake-6831465/",
     creator: {
       username: "jsninjas",
       full_name: "Alex Rivera",
@@ -49,7 +49,7 @@ export const mockReels = [
     title: "Python Data Science Basics",
     description:
       "Get started with data science using Python! Learn pandas, numpy, and matplotlib in this quick introduction. #Python #DataScience #Analytics",
-    video_url: "/placeholder.svg?height=800&width=450&text=Python+Data+Science+Video",
+    video_url: "https://www.pexels.com/video/two-men-sitting-by-the-river-fishing-4830314/",
     creator: {
       username: "datascientist",
       full_name: "Dr. Michael Chen",
