@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { createClient } from "@/lib/supabase"
+import { signIn, signUp } from "@/lib/auth"
 import { toast } from "@/hooks/use-toast"
 import { Eye, EyeOff, Mail, Lock, User, AtSign } from "lucide-react"
 
@@ -20,7 +20,6 @@ interface AuthModalProps {
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -41,12 +40,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: signInData.email,
-        password: signInData.password,
-      })
-
-      if (error) throw error
+      await signIn(signInData.email, signInData.password)
 
       toast({
         title: "Welcome back!",
@@ -70,18 +64,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: signUpData.email,
-        password: signUpData.password,
-        options: {
-          data: {
-            full_name: signUpData.fullName,
-            username: signUpData.username,
-          },
-        },
-      })
-
-      if (error) throw error
+      await signUp(
+        signUpData.email,
+        signUpData.password,
+        signUpData.username,
+        signUpData.fullName
+      )
 
       toast({
         title: "Account created!",

@@ -13,7 +13,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Navbar } from "@/components/navigation/navbar"
 import { MobileBottomNav } from "@/components/navigation/mobile-bottom-nav"
 import { mockCourses, mockCategories } from "@/lib/mockData"
-import { Search, Star, Users, Clock, BookOpen, Play, ChevronRight, Grid3X3, List } from "lucide-react"
+import {
+  Search,
+  Star,
+  Users,
+  Clock,
+  BookOpen,
+  Play,
+  ChevronRight,
+  Grid3X3,
+  List,
+  ArrowLeft, // Import the ArrowLeft icon
+} from "lucide-react"
 
 export default function CoursesPage() {
   const router = useRouter()
@@ -66,6 +77,16 @@ export default function CoursesPage() {
         {/* Header */}
         <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
+            {/* Back to Home Button */}
+            <Button
+              onClick={() => router.push("/")}
+              variant="ghost"
+              className="mb-6 text-white hover:bg-white/10 hover:text-white px-4 py-2 rounded-lg"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-white mb-4">
                 Discover Amazing{" "}

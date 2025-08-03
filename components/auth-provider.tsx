@@ -1,10 +1,8 @@
 "use client"
 
-import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase"
-import type { User } from "@supabase/supabase-js"
+import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 
 interface AuthContextType {
   user: User | null
@@ -21,46 +19,29 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-        setUser(session?.user ?? null)
-      } catch (error) {
-        console.error("Error getting session:", error)
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    getInitialSession()
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user)
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
+    return () => unsubscribe()
+  }, [])
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut()
+      await firebaseSignOut(auth)
     } catch (error) {
       console.error("Error signing out:", error)
     }
   }
 
-  return <AuthContext.Provider value={{ user, loading, signOut }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, loading, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {

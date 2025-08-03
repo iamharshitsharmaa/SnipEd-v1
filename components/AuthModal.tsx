@@ -1,47 +1,53 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
+import { auth, db } from "@/lib/firebase"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
+import { toast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { signIn, signUp } from "@/lib/auth"
-import { toast } from "@/hooks/use-toast"
 
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess?: () => void
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [signInData, setSignInData] = useState({ email: "", password: "" })
-  const [signUpData, setSignUpData] = useState({
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const [signInData, setSignInData] = useState({
     email: "",
     password: "",
-    username: "",
-    fullName: "",
   })
+  const [signUpData, setSignUpData] = useState({
+    fullName: "",
+    username: "",
+    email: "",
+    password: "",
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("signin")
+  const [error, setError] = useState("")
+
+  // Function to clear errors when switching tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    setError("")
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
 
     try {
-      await signIn(signInData.email, signInData.password)
+      await signInWithEmailAndPassword(auth, signInData.email, signInData.password)
       toast({ title: "Welcome back!" })
-      onSuccess?.()
       onClose()
     } catch (error: any) {
-      toast({
-        title: "Error signing in",
-        description: error.message,
-        variant: "destructive",
-      })
+      setError(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -50,21 +56,36 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
+
+    if (signUpData.password.length < 6) {
+      setError("Password should be at least 6 characters.")
+      setIsLoading(false)
+      return
+    }
 
     try {
-      await signUp(signUpData.email, signUpData.password, signUpData.username, signUpData.fullName)
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
+      // Step 1: Create user in Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        signUpData.email,
+        signUpData.password
+      )
+      const user = userCredential.user
+
+      // Step 2: Save additional data to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullName: signUpData.fullName,
+        username: signUpData.username,
+        email: signUpData.email,
+        createdAt: new Date(),
       })
-      onSuccess?.()
+
+      toast({ title: "Account created successfully!" })
       onClose()
     } catch (error: any) {
-      toast({
-        title: "Error creating account",
-        description: error.message,
-        variant: "destructive",
-      })
+      setError(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -77,19 +98,26 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <DialogTitle>Join SnipEd</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="signin" className="space-y-4">
-            <form onSubmit={handleSignIn} className="space-y-4">
+          {/* Sign In Tab */}
+          <TabsContent value="signin">
+            <form onSubmit={handleSignIn} className="space-y-4 pt-4">
+              {error && activeTab === "signin" && (
+                <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium">
+                  {error}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="signin-email">Email</Label>
                 <Input
                   id="signin-email"
                   type="email"
+                  placeholder="name@example.com"
                   value={signInData.email}
                   onChange={(e) => setSignInData((prev) => ({ ...prev, email: e.target.value }))}
                   required
@@ -111,12 +139,19 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             </form>
           </TabsContent>
 
-          <TabsContent value="signup" className="space-y-4">
-            <form onSubmit={handleSignUp} className="space-y-4">
+          {/* Sign Up Tab */}
+          <TabsContent value="signup">
+            <form onSubmit={handleSignUp} className="space-y-4 pt-4">
+              {error && activeTab === "signup" && (
+                <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium">
+                  {error}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="signup-fullname">Full Name</Label>
                 <Input
                   id="signup-fullname"
+                  placeholder="John Doe"
                   value={signUpData.fullName}
                   onChange={(e) => setSignUpData((prev) => ({ ...prev, fullName: e.target.value }))}
                   required
@@ -126,6 +161,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 <Label htmlFor="signup-username">Username</Label>
                 <Input
                   id="signup-username"
+                  placeholder="johndoe"
                   value={signUpData.username}
                   onChange={(e) => setSignUpData((prev) => ({ ...prev, username: e.target.value }))}
                   required
@@ -136,6 +172,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 <Input
                   id="signup-email"
                   type="email"
+                  placeholder="name@example.com"
                   value={signUpData.email}
                   onChange={(e) => setSignUpData((prev) => ({ ...prev, email: e.target.value }))}
                   required
@@ -146,13 +183,14 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 <Input
                   id="signup-password"
                   type="password"
+                  placeholder="6+ characters"
                   value={signUpData.password}
                   onChange={(e) => setSignUpData((prev) => ({ ...prev, password: e.target.value }))}
                   required
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Sign Up"}
+                {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
           </TabsContent>

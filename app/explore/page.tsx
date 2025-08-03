@@ -1,339 +1,329 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { GlassCard } from "@/components/ui/glass-card"
-import { NeonButton } from "@/components/ui/neon-button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Navbar } from "@/components/navigation/navbar"
+import { MobileBottomNav } from "@/components/navigation/mobile-bottom-nav"
+import { mockCourses, mockCategories } from "@/lib/mockData"
 import {
   Search,
-  TrendingUp,
   Star,
   Users,
+  Clock,
+  BookOpen,
   Play,
-  Eye,
-  Filter,
-  Sparkles,
-  Crown,
-  Zap,
-  FlameIcon as Fire,
+  ChevronRight,
+  Grid3X3,
+  List,
+  ArrowLeft, // Import the ArrowLeft icon
 } from "lucide-react"
 
-const trendingCreators = [
-  {
-    id: "1",
-    username: "techguru_alex",
-    name: "Alex Chen",
-    category: "Tech",
-    followers: "3.2M",
-    avatar: "/placeholder.svg?height=80&width=80&text=AC",
-    verified: true,
-    tier: "diamond",
-    gradient: "from-blue-400 to-cyan-500",
-    totalViews: "45M",
-    engagement: "12.5%",
-  },
-  {
-    id: "2",
-    username: "skincare_sarah",
-    name: "Sarah Kim",
-    category: "Skincare",
-    followers: "2.8M",
-    avatar: "/placeholder.svg?height=80&width=80&text=SK",
-    verified: true,
-    tier: "gold",
-    gradient: "from-pink-400 to-rose-500",
-    totalViews: "38M",
-    engagement: "15.2%",
-  },
-  {
-    id: "3",
-    username: "code_master_mike",
-    name: "Mike Rodriguez",
-    category: "Coding",
-    followers: "1.9M",
-    avatar: "/placeholder.svg?height=80&width=80&text=MR",
-    verified: true,
-    tier: "platinum",
-    gradient: "from-green-400 to-emerald-500",
-    totalViews: "29M",
-    engagement: "18.7%",
-  },
-  {
-    id: "4",
-    username: "funny_jenny",
-    name: "Jenny Wilson",
-    category: "Comedy",
-    followers: "4.1M",
-    avatar: "/placeholder.svg?height=80&width=80&text=JW",
-    verified: true,
-    tier: "diamond",
-    gradient: "from-amber-400 to-orange-500",
-    totalViews: "67M",
-    engagement: "22.1%",
-  },
-]
-
-const categories = [
-  { name: "All", count: "∞", active: true },
-  { name: "Tech", count: "1.2M", active: false },
-  { name: "Comedy", count: "2.1M", active: false },
-  { name: "Coding", count: "950K", active: false },
-  { name: "Skincare", count: "1.5M", active: false },
-  { name: "Education", count: "800K", active: false },
-]
-
-export default function ExplorePage() {
+export default function CoursesPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedLevel, setSelectedLevel] = useState("all")
+  const [sortBy, setSortBy] = useState("popular")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
-    }
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [])
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Filter courses based on search query
+    console.log("Searching for:", searchQuery)
+  }
 
-  const getTierIcon = (tier: string) => {
-    switch (tier) {
-      case "diamond":
-        return <Crown className="w-4 h-4 text-cyan-400" />
-      case "platinum":
-        return <Star className="w-4 h-4 text-gray-300" />
-      case "gold":
-        return <Zap className="w-4 h-4 text-yellow-400" />
-      default:
-        return <Fire className="w-4 h-4 text-orange-400" />
-    }
+  const filteredCourses = mockCourses.filter((course) => {
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === "all" || course.category === selectedCategory
+    const matchesLevel = selectedLevel === "all" || course.level.toLowerCase() === selectedLevel
+
+    return matchesSearch && matchesCategory && matchesLevel
+  })
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price)
+  }
+
+  const formatDuration = (hours: number, minutes: number) => {
+    if (hours === 0) return `${minutes}m`
+    if (minutes === 0) return `${hours}h`
+    return `${hours}h ${minutes}m`
   }
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden pb-20 md:pb-0">
-      {/* Ultra-modern animated background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-black to-blue-900/10" />
-        <div
-          className="absolute w-[400px] h-[400px] md:w-[600px] md:h-[600px] bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5 rounded-full blur-3xl"
-          style={{
-            left: mousePosition.x - 200,
-            top: mousePosition.y - 200,
-            transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-        />
-        <div className="absolute top-1/3 left-1/5 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-r from-cyan-500/3 to-teal-500/3 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/3 right-1/5 w-60 h-60 md:w-80 md:h-80 bg-gradient-to-r from-pink-500/3 to-purple-500/3 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-6 md:px-6 md:py-8">
-        {/* Header Section */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-xl border border-purple-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-6 md:mb-8">
-            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-            <span className="text-xs md:text-sm font-medium text-purple-300">Discover Amazing Creators</span>
-          </div>
+      <div className="relative z-10">
+        <Navbar />
 
-          <h1 className="text-4xl md:text-6xl lg:text-8xl font-black mb-4 md:mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-              Explore
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-              Creators
-            </span>
-          </h1>
+        {/* Header */}
+        <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Back to Home Button */}
+            <Button
+              onClick={() => router.push("/")}
+              variant="ghost"
+              className="mb-6 text-white hover:bg-white/10 hover:text-white px-4 py-2 rounded-lg"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
 
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-6 md:mb-8 px-4">
-            Discover the most talented creators across all categories. Find your next favorite content creator.
-          </p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="max-w-4xl mx-auto mb-8 md:mb-12">
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-6 md:mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-              <Input
-                placeholder="Search creators, categories, or content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 md:pl-12 pr-4 py-3 md:py-4 bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl md:rounded-2xl text-white placeholder-gray-400 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-              />
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-4">
+                Discover Amazing{" "}
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Courses
+                </span>
+              </h1>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Learn from industry experts and advance your career with our comprehensive course library
+              </p>
             </div>
-            <NeonButton variant="ghost" className="px-4 py-3 md:px-6 md:py-4">
-              <Filter className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              Filters
-            </NeonButton>
-          </div>
 
-          {/* Category Pills */}
-          <div className="flex flex-wrap gap-2 md:gap-3 justify-center">
-            {categories.map((category) => (
-              <button
-                key={category.name}
-                onClick={() => setSelectedCategory(category.name)}
-                className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                  selectedCategory === category.name
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25"
-                    : "bg-white/5 backdrop-blur-xl border border-white/20 text-gray-300 hover:bg-white/10"
-                }`}
-              >
-                {category.name}
-                <span className="ml-2 text-xs opacity-70">{category.count}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Trending Section */}
-        <div className="mb-12 md:mb-16">
-          <div className="flex items-center justify-between mb-6 md:mb-8">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl md:rounded-2xl flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-white">Trending Now</h2>
-                <p className="text-gray-400 text-sm md:text-base">Hottest creators this week</p>
-              </div>
-            </div>
-            <Badge className="bg-gradient-to-r from-red-500/20 to-orange-500/20 text-orange-300 border-orange-500/30 px-3 py-1 md:px-4 md:py-2">
-              <Fire className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-              Hot
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {trendingCreators.map((creator, index) => (
-              <GlassCard key={creator.id} variant="premium" className="group hover:scale-105 cursor-pointer">
-                <div className="p-4 md:p-6">
-                  {/* Creator Avatar and Tier */}
-                  <div className="relative mb-4 md:mb-6">
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-r ${creator.gradient} rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity`}
-                    />
-                    <Avatar className="relative w-16 h-16 md:w-20 md:h-20 mx-auto ring-4 ring-white/20 group-hover:ring-white/40 transition-all">
-                      <AvatarImage src={creator.avatar || "/placeholder.svg"} />
-                      <AvatarFallback className="text-base md:text-lg font-bold">
-                        {creator.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -top-1 -right-1 md:-top-2 md:-right-2 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                      {getTierIcon(creator.tier)}
-                    </div>
-                    {creator.verified && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 md:-bottom-2 w-5 h-5 md:w-6 md:h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <Star className="w-2 h-2 md:w-3 md:h-3 text-white fill-current" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Creator Info */}
-                  <div className="text-center mb-4 md:mb-6">
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-1">{creator.name}</h3>
-                    <p className="text-purple-400 text-xs md:text-sm mb-2">@{creator.username}</p>
-                    <Badge
-                      className={`bg-gradient-to-r ${creator.gradient.replace("to-", "to-").replace("from-", "from-")}/20 text-white border-0 text-xs`}
-                    >
-                      {creator.category}
-                    </Badge>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
-                    <div className="bg-white/5 rounded-lg md:rounded-xl p-2 md:p-3 text-center">
-                      <div className="flex items-center justify-center mb-1">
-                        <Users className="w-3 h-3 md:w-4 md:h-4 text-purple-400 mr-1" />
-                        <span className="text-xs md:text-sm font-bold text-white">{creator.followers}</span>
-                      </div>
-                      <div className="text-xs text-gray-400">Followers</div>
-                    </div>
-                    <div className="bg-white/5 rounded-lg md:rounded-xl p-2 md:p-3 text-center">
-                      <div className="flex items-center justify-center mb-1">
-                        <Eye className="w-3 h-3 md:w-4 md:h-4 text-pink-400 mr-1" />
-                        <span className="text-xs md:text-sm font-bold text-white">{creator.totalViews}</span>
-                      </div>
-                      <div className="text-xs text-gray-400">Views</div>
-                    </div>
-                  </div>
-
-                  {/* Engagement Rate */}
-                  <div className="mb-4 md:mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400">Engagement</span>
-                      <span className="text-xs font-bold text-green-400">{creator.engagement}</span>
-                    </div>
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full transition-all duration-1000"
-                        style={{ width: creator.engagement }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <NeonButton variant="primary" size="sm" className="flex-1 text-xs md:text-sm" glow>
-                      <Users className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                      Follow
-                    </NeonButton>
-                    <NeonButton variant="ghost" size="sm" className="px-2 md:px-3">
-                      <Play className="w-3 h-3 md:w-4 md:h-4" />
-                    </NeonButton>
-                  </div>
+            {/* Search and Filters */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
+              <form onSubmit={handleSearch} className="mb-6">
+                <div className="relative max-w-2xl mx-auto">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Input
+                    type="text"
+                    placeholder="Search courses, instructors, topics..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-12 pr-4 py-4 text-lg bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  />
                 </div>
-              </GlassCard>
-            ))}
-          </div>
-        </div>
+              </form>
 
-        {/* Categories Grid */}
-        <div className="mb-12 md:mb-16">
-          <div className="flex items-center space-x-3 mb-6 md:mb-8">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl md:rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-white">Browse by Category</h2>
-              <p className="text-gray-400 text-sm md:text-base">Find creators in your favorite topics</p>
-            </div>
-          </div>
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {mockCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
-            {[
-              { name: "Tech", icon: "⚡", count: "1.2M", gradient: "from-blue-400 to-cyan-500" },
-              { name: "Comedy", icon: "😂", count: "2.1M", gradient: "from-amber-400 to-orange-500" },
-              { name: "Coding", icon: "💻", count: "950K", gradient: "from-green-400 to-emerald-500" },
-              { name: "Skincare", icon: "✨", count: "1.5M", gradient: "from-pink-400 to-rose-500" },
-              { name: "Education", icon: "🎓", count: "800K", gradient: "from-purple-400 to-indigo-500" },
-            ].map((category) => (
-              <GlassCard key={category.name} variant="glow" className="group hover:scale-105 cursor-pointer">
-                <div className="p-4 md:p-6 text-center">
-                  <div
-                    className={`w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r ${category.gradient} rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform`}
+                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                    <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="popular">Most Popular</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="rating">Highest Rated</SelectItem>
+                      <SelectItem value="price-low">Price: Low to High</SelectItem>
+                      <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                    className="text-white hover:bg-white/10"
                   >
-                    <span className="text-xl md:text-2xl">{category.icon}</span>
-                  </div>
-                  <h3 className="text-base md:text-lg font-bold text-white mb-1 md:mb-2">{category.name}</h3>
-                  <p className="text-gray-400 text-xs md:text-sm">{category.count} creators</p>
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
                 </div>
-              </GlassCard>
-            ))}
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-gray-400">
+                Showing {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+
+            {/* Courses Grid/List */}
+            <div
+              className={`grid gap-6 ${
+                viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+              }`}
+            >
+              {filteredCourses.map((course) => (
+                <Card
+                  key={course.id}
+                  className={`bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer group backdrop-blur-sm overflow-hidden ${
+                    viewMode === "list" ? "flex flex-row" : ""
+                  }`}
+                  onClick={() => router.push(`/courses/${course.id}`)}
+                >
+                  <div className={`relative ${viewMode === "list" ? "w-80 flex-shrink-0" : ""}`}>
+                    <img
+                      src={course.thumbnail_url || "/placeholder.svg"}
+                      alt={course.title}
+                      className={`object-cover group-hover:scale-105 transition-transform duration-300 ${
+                        viewMode === "list" ? "w-full h-full" : "w-full h-48"
+                      }`}
+                    />
+                    <Badge className="absolute top-3 left-3 bg-purple-600 text-white">{course.category}</Badge>
+                    <Badge variant="secondary" className="absolute top-3 right-3 bg-black/50 text-white">
+                      {course.level}
+                    </Badge>
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Play className="w-12 h-12 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={course.instructor.avatar_url || "/placeholder.svg"} />
+                          <AvatarFallback>
+                            {course.instructor.full_name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-gray-400 text-sm">{course.instructor.full_name}</span>
+                      </div>
+
+                      <h3 className="text-white font-semibold text-lg mb-3 group-hover:text-purple-400 transition-colors line-clamp-2">
+                        {course.title}
+                      </h3>
+
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">{course.description}</p>
+
+                      <div className="flex items-center space-x-4 mb-4 text-sm text-gray-400">
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span>{course.rating}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-4 h-4" />
+                          <span>{course.student_count.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{formatDuration(course.duration_hours, course.duration_minutes)}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <BookOpen className="w-4 h-4" />
+                          <span>{course.lesson_count} lessons</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-white font-bold text-xl">{formatPrice(course.price)}</span>
+                          {course.original_price && (
+                            <span className="text-gray-400 line-through text-sm">
+                              {formatPrice(course.original_price)}
+                            </span>
+                          )}
+                        </div>
+                        {course.original_price && (
+                          <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                            {Math.round(((course.original_price - course.price) / course.original_price) * 100)}% OFF
+                          </Badge>
+                        )}
+                      </div>
+
+                      {viewMode === "list" && (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          <div className="space-y-2">
+                            <h4 className="text-white font-medium text-sm">What you'll learn:</h4>
+                            <ul className="space-y-1">
+                              {course.what_you_learn.slice(0, 3).map((item, index) => (
+                                <li key={index} className="text-gray-400 text-sm flex items-start">
+                                  <span className="text-green-400 mr-2">✓</span>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {filteredCourses.length === 0 && (
+              <div className="text-center py-16">
+                <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">No courses found</h3>
+                <p className="text-gray-400 mb-6">Try adjusting your search criteria or browse all courses</p>
+                <Button
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedCategory("all")
+                    setSelectedLevel("all")
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+
+            {/* Load More */}
+            {filteredCourses.length > 0 && (
+              <div className="text-center mt-12">
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 bg-transparent">
+                  Load More Courses
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Load More */}
-        <div className="text-center">
-          <NeonButton variant="outline" size="lg" className="px-8 md:px-12">
-            Load More Creators
-            <TrendingUp className="w-4 h-4 md:w-5 md:h-5 ml-2" />
-          </NeonButton>
-        </div>
+        <MobileBottomNav />
       </div>
     </div>
   )

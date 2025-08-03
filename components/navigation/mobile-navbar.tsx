@@ -56,7 +56,7 @@ export function MobileNavbar({ user }: MobileNavbarProps) {
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={toggleMenu} />
 
-        {/* Menu Content */}
+        {/* Menu Content */}a
         <div className="absolute right-0 top-0 h-full w-80 bg-gradient-to-br from-gray-900 via-black to-gray-900 border-l border-white/10">
           {/* Background Effects */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />

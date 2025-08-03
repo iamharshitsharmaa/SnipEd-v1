@@ -1,79 +1,46 @@
-import { supabase, isSupabaseConfigured } from "@/lib/mockData"
+import { auth } from "@/lib/firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile,
+  type UserCredential,
+} from "firebase/auth";
 
-export const signIn = async (email: string, password: string) => {
-  if (!isSupabaseConfigured() || !supabase) {
-    // Mock authentication for demo
-    return {
-      user: {
-        id: "demo-user-id",
-        email,
-        user_metadata: {
-          full_name: "Demo User",
-          username: "demouser",
-        },
-      },
-    }
-  }
+export const signIn = async (
+  email: string,
+  password: string
+): Promise<UserCredential> => {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential;
+};
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+export const signUp = async (
+  email: string,
+  password: string,
+  username: string,
+  fullName: string
+): Promise<UserCredential> => {
+  const userCredential = await createUserWithEmailAndPassword(
+    auth,
     email,
-    password,
-  })
+    password
+  );
 
-  if (error) throw error
-  return data
-}
-
-export const signUp = async (email: string, password: string, username: string, fullName: string) => {
-  if (!isSupabaseConfigured() || !supabase) {
-    // Mock authentication for demo
-    return {
-      user: {
-        id: "demo-user-id",
-        email,
-        user_metadata: {
-          full_name: fullName,
-          username,
-        },
-      },
-    }
+  // After creating the user, update their profile with the full name.
+  // Firebase Auth has a `displayName` property, which we'll use for `fullName`.
+  if (userCredential.user) {
+    await updateProfile(userCredential.user, {
+      displayName: fullName,
+    });
   }
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        username,
-        full_name: fullName,
-      },
-    },
-  })
+  // Note: The `username` is not directly stored on the Firebase Auth user object.
+  // You would typically create a user document in a database like Firestore
+  // using the user's ID (`userCredential.user.uid`) to store additional profile info.
+  return userCredential;
+};
 
-  if (error) throw error
-
-  // Create user profile
-  if (data.user) {
-    const { error: profileError } = await supabase.from("users").insert([
-      {
-        id: data.user.id,
-        username,
-        full_name: fullName,
-      },
-    ])
-
-    if (profileError) throw profileError
-  }
-
-  return data
-}
-
-export const signOut = async () => {
-  if (!isSupabaseConfigured() || !supabase) {
-    // Mock sign out
-    return
-  }
-
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-}
+export const signOut = async (): Promise<void> => {
+  await firebaseSignOut(auth);
+};
