@@ -27,7 +27,8 @@ const navItems = [
   { icon: PlaySquare, label: "Feed", href: "/feed" },
   { icon: MessageCircle, label: "Messages", href: "/messages" },
   { icon: Bell, label: "Notifications", href: "/notifications" },
-  { icon: PlusSquare, label: "Create", href: "/create" },
+  // Change this line
+  { icon: PlusSquare, label: "Create", href: "/upload" }, // Changed from /create
   { icon: CircleUserRound, label: "Profile", href: "/profile" },
 ]
 
