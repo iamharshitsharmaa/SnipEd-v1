@@ -1,96 +1,37 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Share, MoreHorizontal, Play, Volume2, VolumeX } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Reel } from "@/lib/mockData";
+import { useState, useRef, useEffect } from "react"
+import { Heart, MessageCircle, Share, MoreHorizontal, Play, Volume2, VolumeX } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface VideoPlayerProps {
-  reel: Reel;
-  isActive: boolean;
-  onLike?: (reelId: string) => void;
+  reel: {
+    id: string
+    title: string
+    description: string
+    video_url: string
+    creator: {
+      username: string
+      full_name: string
+      avatar_url: string
+    }
+    like_count: number
+    comment_count: number
+    view_count: number
+  }
+  isActive: boolean
+  onLike?: (reelId: string) => void
 }
 
-const formatCount = (count: number) => {
-  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-  return count?.toString() ?? '0';
-};
-
-const VideoPlayerUI = ({ reel, isPlaying, isMuted, isLiked, progress, onTogglePlay, onToggleMute, onLike }) => (
-  <div className="absolute inset-0 flex">
-    {/* Left side - Video info */}
-    <div className="flex-1 flex flex-col justify-end p-4 pb-20">
-      <div className="space-y-3">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10 border-2 border-white">
-            <AvatarImage src={reel.creator?.avatar_url || "/placeholder.svg"} />
-            <AvatarFallback className="bg-purple-600 text-white">
-              {reel.creator?.full_name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-white font-semibold text-sm">@{reel.creator?.username || "unknown"}</p>
-            <p className="text-white/80 text-xs">{reel.creator?.full_name || "Unknown User"}</p>
-          </div>
-        </div>
-        <div className="space-y-1">
-          <h3 className="text-white font-semibold text-base leading-tight">{reel.title}</h3>
-          <p className="text-white/90 text-sm leading-relaxed">{reel.description}</p>
-        </div>
-      </div>
-    </div>
-
-    {/* Right side - Action buttons */}
-    <div className="flex flex-col justify-end items-center space-y-6 p-4 pb-20">
-      <div className="flex flex-col items-center space-y-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-12 w-12 rounded-full ${
-            isLiked ? "bg-red-500 hover:bg-red-600 text-white" : "bg-black/30 hover:bg-black/50 text-white"
-          }`}
-          onClick={onLike}
-        >
-          <Heart className={`h-6 w-6 ${isLiked ? "fill-current" : ""}`} />
-        </Button>
-        <span className="text-white text-xs font-medium">{formatCount(reel.like_count + (isLiked ? 1 : 0))}</span>
-      </div>
-
-      <div className="flex flex-col items-center space-y-1">
-        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white">
-          <MessageCircle className="h-6 w-6" />
-        </Button>
-        <span className="text-white text-xs font-medium">{formatCount(reel.comment_count)}</span>
-      </div>
-
-      <div className="flex flex-col items-center space-y-1">
-        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white">
-          <Share className="h-6 w-6" />
-        </Button>
-        <span className="text-white text-xs font-medium">Share</span>
-      </div>
-
-      <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white">
-        <MoreHorizontal className="h-6 w-6" />
-      </Button>
-
-      <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white" onClick={onToggleMute}>
-        {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-      </Button>
-    </div>
-  </div>
-);
-
 export function VerticalVideoPlayer({ reel, isActive, onLike }: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isLiked, setIsLiked] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(true)
+  const [isLiked, setIsLiked] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current;
@@ -206,16 +147,94 @@ export function VerticalVideoPlayer({ reel, isActive, onLike }: VideoPlayerProps
         <div className="h-full bg-white transition-all duration-150" style={{ width: `${progress}%` }} />
       </div>
 
-      <VideoPlayerUI 
-        reel={reel} 
-        isPlaying={isPlaying} 
-        isMuted={isMuted} 
-        isLiked={isLiked} 
-        progress={progress} 
-        onTogglePlay={togglePlay} 
-        onToggleMute={toggleMute} 
-        onLike={handleLike} 
-      />
+      {/* Content Overlay */}
+      <div className="absolute inset-0 flex">
+        {/* Left side - Video info */}
+        <div className="flex-1 flex flex-col justify-end p-4 pb-20">
+          <div className="space-y-3">
+            {/* Creator info */}
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-10 w-10 border-2 border-white">
+                <AvatarImage src={reel.creator?.avatar_url || "/placeholder.svg"} />
+                <AvatarFallback className="bg-purple-600 text-white">
+                  {reel.creator?.full_name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-white font-semibold text-sm">@{reel.creator?.username || "unknown"}</p>
+                <p className="text-white/80 text-xs">{reel.creator?.full_name || "Unknown User"}</p>
+              </div>
+            </div>
+
+            {/* Video title and description */}
+            <div className="space-y-1">
+              <h3 className="text-white font-semibold text-base leading-tight">{reel.title}</h3>
+              <p className="text-white/90 text-sm leading-relaxed">{reel.description}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side - Action buttons */}
+        <div className="flex flex-col justify-end items-center space-y-6 p-4 pb-20">
+          {/* Like button */}
+          <div className="flex flex-col items-center space-y-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-12 w-12 rounded-full ${
+                isLiked ? "bg-red-500 hover:bg-red-600 text-white" : "bg-black/30 hover:bg-black/50 text-white"
+              }`}
+              onClick={handleLike}
+            >
+              <Heart className={`h-6 w-6 ${isLiked ? "fill-current" : ""}`} />
+            </Button>
+            <span className="text-white text-xs font-medium">{formatCount(reel.like_count + (isLiked ? 1 : 0))}</span>
+          </div>
+
+          {/* Comment button */}
+          <div className="flex flex-col items-center space-y-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </Button>
+            <span className="text-white text-xs font-medium">{formatCount(reel.comment_count)}</span>
+          </div>
+
+          {/* Share button */}
+          <div className="flex flex-col items-center space-y-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white"
+            >
+              <Share className="h-6 w-6" />
+            </Button>
+            <span className="text-white text-xs font-medium">Share</span>
+          </div>
+
+          {/* More options */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white"
+          >
+            <MoreHorizontal className="h-6 w-6" />
+          </Button>
+
+          {/* Volume control */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-12 w-12 rounded-full bg-black/30 hover:bg-black/50 text-white"
+            onClick={toggleMute}
+          >
+            {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

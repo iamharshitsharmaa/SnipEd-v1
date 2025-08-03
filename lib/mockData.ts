@@ -16,15 +16,15 @@ export interface Reel {
 // Corrected mock data for your feed
 export const mockReels: Reel[] = [
   {
-    id: 'mock_1',
-    // Using real video URLs for playback
-    video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    // Combining title and description
-    description: 'React Hooks Explained in 60 Seconds\n\nLearn the basics of React Hooks with this quick tutorial. Perfect for beginners who want to understand useState and useEffect! #React #WebDev #Programming',
-    // Renaming 'creator' to 'user' and 'avatar_url' to 'avatar'
-    user: {
-      username: 'reactmaster',
-      avatar: '/placeholder.svg?height=40&width=40&text=SJ',
+    id: "1",
+    title: "React Hooks Explained in 60 Seconds",
+    description:
+      "Learn the basics of React Hooks with this quick tutorial. Perfect for beginners who want to understand useState and useEffect! #React #WebDev #Programming",
+    video_url: "/placeholder.svg?height=800&width=450&text=React+Hooks+Video",
+    creator: {
+      username: "reactmaster",
+      full_name: "Sarah Johnson",
+      avatar_url: "/placeholder.svg?height=40&width=40&text=SJ",
     },
     // Renaming properties to match the Reel type
     likes: 1250,
@@ -34,12 +34,15 @@ export const mockReels: Reel[] = [
     song_name: 'Upbeat Tech - Corporate Music',
   },
   {
-    id: 'mock_2',
-    video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    description: 'CSS Grid Layout Tricks\n\nMaster CSS Grid with these amazing layout tricks! Create responsive designs that look great on any device. #CSS #WebDesign #Frontend',
-    user: {
-      username: 'cssqueen',
-      avatar: '/placeholder.svg?height=40&width=40&text=ED',
+    id: "2",
+    title: "CSS Grid Layout Tricks",
+    description:
+      "Master CSS Grid with these amazing layout tricks! Create responsive designs that look great on any device. #CSS #WebDesign #Frontend",
+    video_url: "/placeholder.svg?height=800&width=450&text=CSS+Grid+Video",
+    creator: {
+      username: "cssqueen",
+      full_name: "Emma Davis",
+      avatar_url: "/placeholder.svg?height=40&width=40&text=ED",
     },
     likes: 2100,
     comments: 156,
@@ -47,17 +50,34 @@ export const mockReels: Reel[] = [
     song_name: 'Creative Minds - Lofi Beats',
   },
   {
-    id: 'mock_3',
-    video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
-    description: 'JavaScript ES6 Features You Must Know\n\nDiscover the most important ES6 features that every JavaScript developer should master. Arrow functions, destructuring, and more! #JavaScript #ES6 #WebDev',
-    user: {
-      username: 'jsninjas',
-      avatar: '/placeholder.svg?height=40&width=40&text=AR',
+    id: "3",
+    title: "JavaScript ES6 Features You Must Know",
+    description:
+      "Discover the most important ES6 features that every JavaScript developer should master. Arrow functions, destructuring, and more! #JavaScript #ES6 #WebDev",
+    video_url: "/placeholder.svg?height=800&width=450&text=JavaScript+ES6+Video",
+    creator: {
+      username: "jsninjas",
+      full_name: "Alex Rivera",
+      avatar_url: "/placeholder.svg?height=40&width=40&text=AR",
     },
-    likes: 3400,
-    comments: 234,
-    shares: 150,
-    song_name: 'Future Bass - Electronic Mix',
+    like_count: 3400,
+    comment_count: 234,
+    view_count: 45200,
+  },
+  {
+    id: "4",
+    title: "Python Data Science Basics",
+    description:
+      "Get started with data science using Python! Learn pandas, numpy, and matplotlib in this quick introduction. #Python #DataScience #Analytics",
+    video_url: "/placeholder.svg?height=800&width=450&text=Python+Data+Science+Video",
+    creator: {
+      username: "datascientist",
+      full_name: "Dr. Michael Chen",
+      avatar_url: "/placeholder.svg?height=40&width=40&text=MC",
+    },
+    like_count: 1890,
+    comment_count: 167,
+    view_count: 22300,
   },
 ];
 
